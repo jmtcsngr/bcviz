@@ -16,36 +16,40 @@ jobs:
 
     env:
       NPM_CONFIG_PREFIX: "$HOME/.npm-global"
+      CONDA_HOME: "$HOME/conda"
+      CONDA_TEST_ENV: test-environment
 
     name: Node ${{ matrix.node }} on ${{ matrix.os }}
     steps:
     - uses: actions/checkout@v4
+      with:
+        fetch-depth: '0'
 
-    - name: Initialize Miniconda
+    - name: "Install Miniforge"
       run: |
-          echo 'source $CONDA/etc/profile.d/conda.sh' >> "$HOME/.bash_profile"
-    - name: Cache conda
-      id: minicondaCache
+        CONDA_HOME=${{ env.CONDA_HOME }} ./scripts/install_miniforge.sh
+        echo 'source "${{ env.CONDA_HOME }}/etc/profile.d/conda.sh"' >> "$HOME/.bash_profile"
+
+    - name: "Cache Conda"
+      id: miniforgeCache
       uses: actions/cache@v4
       with:
         path: |
           ~/conda/pkgs
           ~/conda/envs
-        key: ${{ matrix.os }}-build-miniconda
+        key: ${{ runner.os }}-build-miniforge
 
-    - name: install conda client and set up conda environment
+    - name: "Install Conda packages"
       run: |
-          conda config --prepend pkgs_dirs ~/conda/pkgs
-          conda config --prepend envs_dirs ~/conda/envs
-          conda config --set auto_update_conda False
-          conda info
-          conda create -y -n "$CONDA_TEST_ENV"
-          conda install -y -n "$CONDA_TEST_ENV" nodejs=="${{ matrix.node }}"
-      env:
-        CONDA_TEST_ENV: test-environment
+        conda config --prepend pkgs_dirs ${{ env.CONDA_HOME }}/pkgs
+        conda config --prepend envs_dirs ${{ env.CONDA_HOME }}/envs
+        conda info
+        conda create  -y -n "${{ env.CONDA_TEST_ENV }}"
+        conda install -y -n "${{ env.CONDA_TEST_ENV }}" nodejs=="${{ matrix.node }}"
 
     - name: Run install scripts
       run: |
+          conda activate "${{ env.CONDA_TEST_ENV }}"
           mkdir -p "$NPM_CONFIG_PREFIX"
           npm install -g bower grunt-cli node-qunit-phantomjs
           npm install
@@ -54,7 +58,7 @@ jobs:
 
     - name: run script
       run: |
+          conda activate "${{ env.CONDA_TEST_ENV }}"
           export PATH="$NPM_CONFIG_PREFIX/bin:$PATH"
-          conda activate "$CONDA_TEST_ENV"
           conda info --envs
           ${GITHUB_WORKSPACE}/scripts/script.sh
