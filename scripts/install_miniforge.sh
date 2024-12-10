@@ -7,7 +7,7 @@
 # conda activate
 set -ex
 MINIFORGE_VERSION="24.9.0-0"
-MINIFORGE_SHA256="77fb505f6266ffa1b5d59604cf6ba25948627e908928cbff148813957b1c28af"
+MINIFORGE_SHA256="a75b489adb52effd81d15f0e700c0803992fe6a2357e8eb80685a529df7daa48"
 CONDA_HOME=${CONDA_HOME:="$HOME/conda"}
 export CONDA_HOME
 CONDARC="$HOME/.condarc"
@@ -20,7 +20,7 @@ show_channel_urls: true
 channels:
   - conda-forge
 EOF
-curl -sSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Mambaforge-${MINIFORGE_VERSION}-Linux-x86_64.sh" -o ./miniforge.sh
+curl -sSL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-$(uname)-$(uname -m).sh" -o ./miniforge.sh
 sha256sum ./miniforge.sh | grep "$MINIFORGE_SHA256"
 /bin/bash ./miniforge.sh -b -p "$CONDA_HOME"
 rm ./miniforge.sh
